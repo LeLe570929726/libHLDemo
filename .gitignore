@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# IDE files
+.vs
+.vscode
+.clion
+CMakeSettings.json
+
+# Build temporary
+Build/

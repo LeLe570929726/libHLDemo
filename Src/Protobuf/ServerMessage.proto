@@ -1,0 +1,227 @@
+syntax = "proto3";
+
+import "CommonType.proto"
+
+package HLDemo.ServerMessage;
+
+// First message from server about game or map etc.
+message ServerInfo {
+	int32 protocol = 1;
+	int32 serverCount = 2;
+	bool isDedicated = 3;
+	bool isOfficialValveServer = 4;
+	bool isHltv = 5;
+	bool isReplay = 6;
+	bool isRedirectingToProxyRelay = 21;
+	int32 cOS = 7;
+	fixed32 mapCRC = 8;
+	fixed32 clientCRC = 9;
+	fixed32 stringTableCRC = 10;
+	int32 maxClients = 11;
+	int32 maxClasses = 12;
+	int32 playerSlot = 13;
+	float tickInterval = 14;
+	string gameDir = 15;
+	string mapName = 16;
+	string mapGroupName = 17;
+	string skyName = 18;
+	string hostName = 19;
+	uint64 ugcMapId = 22;	
+}
+
+// Sends a sendtable description for a game class
+message SendTable {
+	message SendProp {
+		int32 type = 1;
+		string varName = 2;
+		int32 flags = 3;
+		int32 priority = 4;
+		string dtName = 5;
+		int32 numElements = 6;
+		float lowValue = 7;
+		float highValue = 8;
+		int32 numBits = 9;
+	}
+	bool isEnd = 1;
+	string netTableName = 2;
+	bool needsDecoder = 3;
+	repeated SendProp props = 4;
+}
+
+// Info about classes (first byte is a CLASSINFO_ define)
+message ClassInfo {
+	message Class {
+		int32 classID = 1;
+		string dataTableName = 2;
+		string className = 3;
+	}
+	bool createOnClient = 1;
+	repeated Class classes = 2;
+}
+
+// Tells client if server paused or unpaused
+message SetPause {
+	bool paused = 1;
+}
+
+// Inits shared string tables
+message CreateStringTable {
+	string name = 1;
+	int32 maxEntries = 2;
+	int32 numEntries = 3;
+	bool userDataFixedSize = 4;
+	int32 userDataSize = 5;
+	int32 userDataSizeBits = 6;
+	int32 flags = 7;
+	bytes stringData = 8;
+}
+
+// Updates a string table
+message UpdateStringTable {
+	int32 tableID = 1;
+	int32 numChangedEntries = 2;
+	bytes stringData = 3;
+}
+
+// Inits used voice codecs and quality
+message VoiceInit {
+	int32 quality = 1;
+	string codec = 2;
+}
+
+// Voicestream data from the server
+message VoiceData {
+	int32 client = 1;
+	bool proximity = 2;
+	fixed64 xuid = 3;
+	int32 audibleMask = 4;
+	bytes voiceData = 5;
+}
+
+// Print text to console
+message Print {
+	string text = 1;
+}
+
+// Starts playing sound
+message Sounds {
+	message SoundData {
+		sint32 originX = 1;
+		sint32 originY = 2;
+		sint32 originZ = 3;
+		uint32 volume = 4;
+		float delayValue = 5;
+		int32 sequenceNumber = 6;
+		int32 entityIndex = 7;
+		int32 channel = 8;
+		int32 pitch = 9;
+		int32 flags = 10;
+		uint32 soundNum = 11;
+		fixed32 soundNumHandle = 12;
+		int32 speakerEntity = 13;
+		int32 randomSeed = 14;
+		int32 soundLevel = 15;
+		bool isSentence = 16;
+		bool isAmbient = 17;
+	}
+	bool reliableSound = 1;
+	repeated SoundData sounds = 2;
+}
+
+// Sets entity as point of view
+message SetView {
+	int32 entityIndex = 1;
+}
+
+// Set/Corrects players viewangle
+message FixAngle {
+	bool relative = 1;
+	HLDemo.CommonType.Angle angle = 2;
+}
+
+// Adjusts crosshair in auto aim mode to lock on target
+message CrosshairAngle {
+	HLDemo.CommonType.Angle angle = 1;
+}
+
+// Add a static decal to the world BSP
+message BSPDecal {
+	HLDemo.CommonType.Vector3 pos = 1;
+	int32 decalTextureIndex = 2;
+	int32 entityIndex = 3;
+	int32 modelIndex = 4;
+	bool lowPriority = 5;
+}
+
+// A game specific message
+message UserMessage {
+	int32 msgType = 1;
+	bytes msgData = 2;
+}
+
+// Global game event fired
+message GameEvent {
+	message Key {
+		int32 type = 1;
+		string valString = 2;
+		float valFloat = 3;
+		int32 calLong = 4;
+		int32 valShort = 5;
+		int32 valByte = 6;
+		bool valBool = 7;
+		uint64 valUInt64 = 8;
+		bytes valWString = 9;
+	}
+	string eventName = 1;
+	int32 eventID = 2;
+	repeated Key keys = 3;
+}
+
+// Non-delta compressed entities
+message PacketEntities {
+	int32 maxEntries = 1;
+	int32 updatedEntries = 2;
+	bool isDelta = 3;	
+	bool updateBaseline = 4;
+	int32 baseline = 5;
+	int32 deltaFrom = 6;
+	bytes entityData = 7;
+}
+
+// non-reliable event object
+message TempEntities {
+	bool reliable = 1;
+	int32 numEntries = 2;
+	bytes entityData = 3;
+}
+
+// Only sound indices for now
+message Prefetch {
+	int32 soundIndex = 1;
+}
+
+// Display a menu from a plugin
+message Menu {
+	int32 dialogType = 1;
+	bytes menuKeyValues = 2;
+}
+
+// List of known games events and fields
+message GameEventList {
+	message Key {
+		int32 type = 1;
+		string name = 2;
+	}
+	message Descriptor {
+		int32 eventID = 1;
+		string name = 2;
+		repeated Key keys = 3;
+	}
+	repeated Descriptor descriptors = 1;
+}
+
+// Server wants to know the value of a cvar on the client
+message GetCvarValue {
+	int32 cookie = 1;
+	string cvarName = 2;
+}
